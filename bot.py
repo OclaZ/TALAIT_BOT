@@ -53,6 +53,7 @@ async def on_guild_join(guild):
 
 async def load_cogs():
     await bot.load_extension('cogs.challenges')
+    await bot.load_extension('cogs.submissions')
     await bot.load_extension('cogs.leaderboard')
     await bot.load_extension('cogs.admin')
     await bot.load_extension('cogs.help')

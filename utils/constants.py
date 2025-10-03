@@ -17,4 +17,4 @@ ALLOWED_ROLES = ['formateur', 'admin', 'moderator']
 
 # Channel names
 EXERCISE_CHANNEL_NAME = 'exercice'
-SUBMISSION_CHANNEL_NAME = 'code-wars-submissions'
+SUBMISSIONS_CATEGORY_NAME = 'Challenge Submissions'

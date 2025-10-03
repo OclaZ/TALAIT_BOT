@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 from datetime import datetime, timedelta
-from utils.constants import ALLOWED_ROLES, EXERCISE_CHANNEL_NAME, SUBMISSION_CHANNEL_NAME
+from utils.constants import ALLOWED_ROLES, EXERCISE_CHANNEL_NAME
 from utils.embeds import create_challenge_embed, create_submission_embed
 
 class Challenges(commands.Cog):
@@ -157,37 +157,6 @@ class Challenges(commands.Cog):
             ephemeral=True
         )
 
-    @app_commands.command(name='submissions', description='List all submissions for the current challenge')
-    async def list_submissions(self, interaction: discord.Interaction):
-        if not self.has_trainer_role(interaction):
-            await interaction.response.send_message('❌ Only trainers can view submissions!', ephemeral=True)
-            return
-
-        challenge = self.data_manager.get_active_challenge() or self.data_manager.get_latest_challenge()
-        if not challenge:
-            await interaction.response.send_message('❌ No challenge found!', ephemeral=True)
-            return
-
-        submissions = challenge.get('submissions', [])
-        if not submissions:
-            await interaction.response.send_message('❌ No submissions yet!', ephemeral=True)
-            return
-
-        embed = discord.Embed(
-            title=f'📝 Submissions for: {challenge["title"]}',
-            description=f"Total submissions: **{len(submissions)}**",
-            color=discord.Color.blue()
-        )
-
-        for idx, sub in enumerate(submissions[:25], 1):
-            user = await self.bot.fetch_user(sub['user_id'])
-            embed.add_field(
-                name=f"{idx}. {user.name}",
-                value=f"[View Submission](https://discord.com/channels/{interaction.guild_id}/{sub['channel_id']}/{sub['message_id']})",
-                inline=False
-            )
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @tasks.loop(hours=24)
     async def auto_post_challenge(self):
@@ -214,22 +183,6 @@ class Challenges(commands.Cog):
     async def before_auto_post(self):
         await self.bot.wait_until_ready()
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        # Track submissions in submission channel
-        if message.channel.name == SUBMISSION_CHANNEL_NAME and not message.author.bot:
-            active_challenge = self.data_manager.get_active_challenge()
-            if active_challenge:
-                submission_data = {
-                    'user_id': message.author.id,
-                    'message_id': message.id,
-                    'channel_id': message.channel.id,
-                    'submitted_at': datetime.now().isoformat()
-                }
-                self.data_manager.add_submission(active_challenge['id'], submission_data)
-                
-                # React to confirm
-                await message.add_reaction('✅')
 
 async def setup(bot):
     await bot.add_cog(Challenges(bot))
